@@ -1,20 +1,27 @@
-FROM centos:centos7
-MAINTAINER Marcin Ryzycki marcin@m12.io, Przemyslaw Ozgo linux@ozgo.info
+#
+# fanli:base7
+#
 
-# - Install basic packages (e.g. python-setuptools is required to have python's easy_install)
-# - Install inotify, needed to automate daemon restarts after config file changes
-# - Install supervisord (via python's easy_install - as it has the newest 3.x version)
+FROM centos:centos7
+MAINTAINER it@fanli.com
+
+RUN yum -y install epel-release; yum clean all
+RUN yum -y install supervisor yum clean all;
+
 RUN \
-  yum update -y && \
   yum install -y epel-release && \
   yum install -y python-setuptools hostname inotify-tools && \
+  yum install -y net-tools  && \
   yum clean all && \
 
   easy_install supervisor
 
-# Add supervisord conf, bootstrap.sh files
-ADD container-files /
 
-VOLUME ["/data"]
+# copy cfg files:
+ADD ./cfg/supervisord.conf /etc/supervisord.conf
+ADD ./cfg/supervisord.d /etc/supervisord.d
+ADD ./bootstrap.sh /usr/local/bin/bootstrap.sh
 
-ENTRYPOINT ["/config/bootstrap.sh"]
+# start services:
+ENTRYPOINT ["/usr/local/bin/bootstrap.sh"]
+
